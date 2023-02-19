@@ -1,25 +1,43 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import { useEffect } from "react";
 
-function App() {
+export default function App() {
+  const [eventSource, setEventSource] = useState(null);
+  const [eventSourceValue, setEventSourceValue] = useState(null);
+
+  useEffect(() => {
+    if (!eventSource) {
+      const eventSource = new EventSource("http://127.0.0.1:8080");
+
+      eventSource.onmessage = (event) => {
+        setEventSourceValue(event.data);
+      };
+
+      setEventSource(eventSource);
+    }
+  }, [eventSource]);
+
+  const stopEventSource = () => {
+    eventSource.close();
+  };
+
+  const startEventSource = () => {
+    const eventSource = new EventSource("http://127.0.0.1:8080");
+    setEventSource(eventSource);
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {eventSource && eventSourceValue ? (
+        <>
+          <h1>Server Sent Events</h1>
+          <h2>{eventSourceValue}</h2>
+          <button onClick={stopEventSource}>Stop EventSource</button>
+          <button onClick={startEventSource}>Start EventSource</button>
+        </>
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
 }
-
-export default App;
